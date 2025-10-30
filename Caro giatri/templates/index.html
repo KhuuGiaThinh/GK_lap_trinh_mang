@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Cờ Caro Giải trí</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        .cell.last {
+            background: #90caf9 !important;
+            box-shadow: 0 0 8px #42a5f5;
+            animation: pulse 0.8s ease-in-out;
+        }
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+
+        /* Gộp nút Trang chủ (dùng chung cho cả khi đang chơi và sau khi kết thúc) */
+        #home-btn {
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            border: none;
+            border-radius: 10px;
+            padding: 8px 18px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 12px;
+        }
+        #home-btn:hover {
+            background: #ffe082;
+            transform: scale(1.05);
+        }
+
+        #timer {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffeb3b;
+            margin-top: 6px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cờ Caro 16×16</h1>
+
+    <div id="menu">
+        <button id="find">Tìm đối thủ</button>
+        <button id="solo">Chơi 1 mình (đấu máy)</button>
+        <p id="status">Chưa kết nối</p>
+    </div>
+
+    <div id="game-area" style="display:none;">
+        <p id="turn-status"></p>
+        <p id="timer"></p>
+        <div id="board"></div>
+
+        <div id="after-game" style="margin-top: 15px; display: none;">
+            <button id="play-again">🔄 Chơi lại</button>
+        </div>
+
+        <!-- ✅ Nút Trang chủ duy nhất, dùng chung -->
+        <button id="home-btn">🏠 Trang chủ</button>
+    </div>
+
+    <script>
+        const socket = io();
+        let mySymbol = null, roomId = null, myTurn = false, soloMode = false;
+        const BOARD_N = 16;
+
+        const boardEl = document.getElementById('board');
+        const statusEl = document.getElementById('status');
+        const menu = document.getElementById('menu');
+        const gameArea = document.getElementById('game-area');
+        const turnStatus = document.getElementById('turn-status');
+        const afterGame = document.getElementById('after-game');
+        const timerEl = document.getElementById('timer');
+        const homeBtn = document.getElementById('home-btn');
+
+        let timerInterval = null;
+        let timeLeft = 30;
+
+        function createEmptyBoard() {
+            return Array.from({ length: BOARD_N }, () => Array(BOARD_N).fill(''));
+        }
+
+        function drawBoard(board, winner_positions = [], last = null) {
+            boardEl.innerHTML = '';
+            const winSet = new Set(winner_positions.map(p => p[0] + ',' + p[1]));
+            for (let i = 0; i < BOARD_N; i++) {
+                for (let j = 0; j < BOARD_N; j++) {
+                    const div = document.createElement('div');
+                    div.classList.add('cell');
+                    if (winSet.has(i + ',' + j)) div.classList.add('win');
+                    if (last && last[0] === i && last[1] === j) div.classList.add('last');
+                    div.textContent = board[i][j];
+                    if (board[i][j] === 'X') div.style.color = '#e53935';
+                    if (board[i][j] === 'O') div.style.color = '#1e88e5';
+                    div.onclick = () => {
+                        if (myTurn && board[i][j] === '')
+                            socket.emit('make_move', { room: roomId, row: i, col: j });
+                    };
+                    boardEl.appendChild(div);
+                }
+            }
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 30;
+            updateTimer();
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimer();
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    myTurn = false;
+                    turnStatus.textContent = "⏰ Hết giờ! Bạn đã thua!";
+                    socket.emit('timeout', { room: roomId });
+                }
+            }, 1000);
+        }
+
+        function stopTimer() { clearInterval(timerInterval); }
+
+        function updateTimer() {
+            timerEl.textContent = myTurn ? `⏱ Còn lại: ${timeLeft}s` : '';
+        }
+
+        socket.on('connected', () => {
+            statusEl.textContent = '✅ Kết nối thành công. Chọn chế độ để bắt đầu!';
+        });
+
+        document.getElementById('find').onclick = () => {
+            soloMode = false;
+            socket.emit('find_room', { solo: false });
+        };
+        document.getElementById('solo').onclick = () => {
+            soloMode = true;
+            socket.emit('find_room', { solo: true });
+        };
+
+        socket.on('waiting', data => statusEl.textContent = data.msg);
+
+        socket.on('room_joined', data => {
+            roomId = data.room;
+            mySymbol = data.symbol;
+            menu.style.display = 'none';
+            gameArea.style.display = 'block';
+            afterGame.style.display = 'none';
+            statusEl.textContent = `🎮 Đã vào phòng ${roomId}. Bạn là ${mySymbol}`;
+        });
+
+        socket.on('start_game', data => {
+            myTurn = (data.turn === mySymbol);
+            afterGame.style.display = 'none';
+            drawBoard(createEmptyBoard());
+            stopTimer();
+            if (myTurn) startTimer();
+            turnStatus.textContent = myTurn ? "🟢 Đến lượt bạn!" : "🕐 Chờ đối thủ...";
+        });
+
+        socket.on('state_update', data => {
+            const { board, finished, winner, winner_positions = [], turn } = data;
+            drawBoard(board, winner_positions);
+            if (finished) {
+                stopTimer();
+                afterGame.style.display = 'block';
+                timerEl.textContent = '';
+                if (winner === 'draw') turnStatus.textContent = "😐 Hòa!";
+                else if (winner === mySymbol) turnStatus.textContent = "🎉 Bạn thắng!";
+                else if (winner === 'O' && soloMode) turnStatus.textContent = "🤖 Máy thắng!";
+                else turnStatus.textContent = "😭 Bạn thua!";
+            } else {
+                myTurn = (turn === mySymbol);
+                stopTimer();
+                if (myTurn) startTimer();
+                turnStatus.textContent = myTurn ? "🟢 Đến lượt bạn!" : "🕐 Chờ đối thủ...";
+            }
+        });
+
+        document.getElementById('play-again').onclick = () => {
+            stopTimer();
+            socket.emit('find_room', { solo: soloMode });
+            afterGame.style.display = 'none';
+        };
+
+        homeBtn.onclick = () => {
+            if (confirm("⚠️ Bạn có chắc muốn thoát về Trang chủ không?")) {
+                stopTimer();
+                menu.style.display = 'block';
+                gameArea.style.display = 'none';
+                afterGame.style.display = 'none';
+                mySymbol = null; roomId = null; myTurn = false;
+                boardEl.innerHTML = ''; timerEl.textContent = '';
+                turnStatus.textContent = '';
+                statusEl.textContent = '🏠 Đã quay lại menu chính.';
+            }
+        };
+    </script>
+</body>
+</html>
