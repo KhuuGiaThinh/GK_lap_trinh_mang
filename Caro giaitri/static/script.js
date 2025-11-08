@@ -148,14 +148,7 @@ socket.on('state_update', data => {
     }
 });
 
-/* === Nút Chơi lại === */
-document.getElementById('play-again').onclick = () => {
-    stopTimer();
-    socket.emit('find_room', { solo: soloMode });
-    afterGame.style.display = 'none';
-    drawBoard(createEmptyBoard());
-    turnStatus.textContent = "🔄 Đang khởi tạo lại...";
-};
+
 
 /* === Nút Trang chủ duy nhất === */
 homeBtn.onclick = () => {
