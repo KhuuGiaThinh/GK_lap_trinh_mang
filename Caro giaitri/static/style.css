@@ -163,10 +163,7 @@ button:hover {
     transition: 0.3s;
 }
 
-#after-game button:hover {
-    background: #ffe082;
-    transform: scale(1.05);
-}
+
 
 /* ======= Nút Trang chủ trong khi chơi ======= */
 #home-btn {
