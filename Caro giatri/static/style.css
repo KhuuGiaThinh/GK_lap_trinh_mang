@@ -1,0 +1,212 @@
+/* ======= Giao diện nền & tiêu đề ======= */
+body {
+    background: linear-gradient(-45deg, #4facfe, #00f2fe, #43e97b, #38f9d7);
+    background-size: 400% 400%;
+    animation: gradientMove 10s ease infinite;
+    font-family: "Poppins", sans-serif;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+@keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+h1 {
+    margin-top: 40px;
+    font-size: 42px;
+    letter-spacing: 1px;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.35);
+    animation: fadeIn 1s ease-in-out;
+}
+
+/* ======= Nút bấm ======= */
+button {
+    margin: 10px;
+    padding: 12px 26px;
+    border: none;
+    border-radius: 10px;
+    font-size: 18px;
+    background: #ffffff;
+    color: #333;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: 600;
+}
+
+button:hover {
+    transform: scale(1.1);
+    background: #ffe047;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+}
+
+/* Nút xanh & đỏ */
+.btn.green { background: #4caf50; color: #fff; }
+.btn.green:hover { background: #66bb6a; }
+
+.btn.red { background: #f44336; color: #fff; }
+.btn.red:hover { background: #e57373; }
+
+/* ======= Bảng cờ ======= */
+#board {
+    display: grid;
+    grid-template-columns: repeat(16, 38px);
+    gap: 3px;
+    justify-content: center;
+    margin: 25px auto;
+    padding: 20px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 18px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    transition: 0.3s;
+    backdrop-filter: blur(10px);
+}
+
+/* ======= Ô cờ ======= */
+.cell {
+    width: 38px;
+    height: 38px;
+    background: #fff;
+    border-radius: 6px;
+    color: #333;
+    font-size: 22px;
+    line-height: 38px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.cell:hover {
+    background: #eaf6ff;
+    transform: scale(1.05);
+}
+
+/* Ô thắng */
+.cell.win {
+    background: gold;
+    color: #d32f2f;
+    animation: glow 1s infinite alternate;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+}
+
+/* Ô vừa đánh */
+.cell.last {
+    background: #90caf9 !important;
+    box-shadow: 0 0 8px #42a5f5;
+    animation: pulse 0.8s ease-in-out;
+}
+
+@keyframes pulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.12); }
+}
+
+/* ======= Hiệu ứng sáng thắng ======= */
+@keyframes glow {
+    from { box-shadow: 0 0 6px gold; }
+    to { box-shadow: 0 0 18px gold; }
+}
+
+/* ======= Hiệu ứng fade ======= */
+.fade-in {
+    animation: fadeIn 0.8s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ======= Khu vực thông tin & trạng thái ======= */
+#turn-status {
+    font-size: 20px;
+    font-weight: 600;
+    margin-top: 10px;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+}
+
+#status {
+    font-size: 18px;
+    font-style: italic;
+    margin-top: 10px;
+}
+
+#timer {
+    font-size: 19px;
+    color: #fff176;
+    font-weight: bold;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
+    margin-top: 5px;
+}
+
+/* ======= Nút sau khi kết thúc ======= */
+#after-game {
+    margin-top: 15px;
+}
+
+#after-game button {
+    background: #fff;
+    border-radius: 10px;
+    color: #333;
+    font-size: 17px;
+    margin: 8px;
+    padding: 10px 20px;
+    transition: 0.3s;
+}
+
+#after-game button:hover {
+    background: #ffe082;
+    transform: scale(1.05);
+}
+
+/* ======= Nút Trang chủ trong khi chơi ======= */
+#home-btn {
+    background: rgba(255,255,255,0.9);
+    color: #333;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 10px;
+}
+#home-btn:hover {
+    background: #ffeb3b;
+    transform: scale(1.05);
+}
+
+/* ======= Responsive (mobile) ======= */
+@media (max-width: 768px) {
+    #board {
+        grid-template-columns: repeat(16, 24px);
+        gap: 2px;
+        padding: 10px;
+    }
+
+    .cell {
+        width: 24px;
+        height: 24px;
+        font-size: 16px;
+        line-height: 24px;
+    }
+
+    h1 {
+        font-size: 30px;
+        margin-top: 25px;
+    }
+
+    button {
+        font-size: 16px;
+        padding: 10px 18px;
+    }
+}
