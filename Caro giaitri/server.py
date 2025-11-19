@@ -17,35 +17,7 @@ lock = threading.Lock()
 def index():
     return render_template('index.html')
 
- function startTimer() {
-            clearInterval(timerInterval);
-            timeLeft = 30;
-            updateTimer();
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                updateTimer();
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    myTurn = false;
-                    turnStatus.textContent = "⏰ Hết giờ! Bạn đã thua!";
-                    socket.emit('timeout', { room: roomId });
-                }
-            }, 1000);
-        } function startTimer() {
-            clearInterval(timerInterval);
-            timeLeft = 30;
-            updateTimer();
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                updateTimer();
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    myTurn = false;
-                    turnStatus.textContent = "⏰ Hết giờ! Bạn đã thua!";
-                    socket.emit('timeout', { room: roomId });
-                }
-            }, 1000);
-        }
+
 def find_five_in_a_row(board, symbol):
     """Trả về danh sách 5 ô tạo thành chiến thắng nếu có, ngược lại trả về None."""
     n = len(board)
